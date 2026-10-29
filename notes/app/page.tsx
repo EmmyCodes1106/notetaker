@@ -98,6 +98,10 @@ export default function Home() {
     }
   }
 
+  function deleteNote(noteId: string) {
+    saveNotes(notes.filter((note) => note.id !== noteId));
+  }
+
   const availableTags = [...new Set(notes.flatMap((note) => note.tags))].sort();
   const normalizedSearch = search.trim().toLowerCase();
   const visibleNotes = notes.filter((note) => {
@@ -257,9 +261,19 @@ export default function Home() {
                   key={note.id}
                   className="min-w-0 space-y-4 rounded-2xl border border-slate-700/80 border-l-4 border-l-sky-400 bg-gradient-to-br from-slate-900 to-slate-900/70 p-4 shadow-lg shadow-black/20 sm:p-5"
                 >
-                  <h3 className="min-w-0 break-words text-xl font-semibold tracking-tight text-slate-50">
-                    {note.title}
-                  </h3>
+                  <div className="flex items-start justify-between gap-3">
+                    <h3 className="min-w-0 break-words text-xl font-semibold tracking-tight text-slate-50">
+                      {note.title}
+                    </h3>
+                    <button
+                      type="button"
+                      onClick={() => deleteNote(note.id)}
+                      aria-label={`Delete ${note.title}`}
+                      className="min-h-10 shrink-0 rounded-lg px-3 text-sm font-medium text-rose-300 transition hover:bg-rose-400/10 hover:text-rose-200"
+                    >
+                      Delete
+                    </button>
+                  </div>
                   <div className="min-w-0 break-words rounded-xl border border-slate-800/80 bg-slate-950/40 px-4 py-3 text-[15px] leading-7 text-slate-300 [&_a]:text-sky-300 [&_a]:underline [&_blockquote]:my-3 [&_blockquote]:border-l-2 [&_blockquote]:border-sky-500 [&_blockquote]:pl-4 [&_h1]:my-3 [&_h1]:text-2xl [&_h1]:font-bold [&_h1]:text-slate-100 [&_h2]:my-3 [&_h2]:text-xl [&_h2]:font-bold [&_h2]:text-slate-100 [&_h3]:my-2 [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:text-slate-100 [&_ol]:my-2 [&_ol]:list-decimal [&_ol]:pl-6 [&_p]:my-2 [&_strong]:font-semibold [&_strong]:text-slate-100 [&_ul]:my-2 [&_ul]:list-disc [&_ul]:pl-6">
                     <ReactMarkdown>{note.body}</ReactMarkdown>
                   </div>
