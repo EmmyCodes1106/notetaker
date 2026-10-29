@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { checkNote } from "./actions";
 
 type Note = {
@@ -10,10 +10,66 @@ type Note = {
   tags: string[];
 };
 
+const STORAGE_KEY = "notes";
+
+function isNote(value: unknown): value is Note {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+
+  const note = value as Record<string, unknown>;
+  return (
+    typeof note.id === "string" &&
+    typeof note.title === "string" &&
+    typeof note.body === "string" &&
+    Array.isArray(note.tags) &&
+    note.tags.every((tag) => typeof tag === "string")
+  );
+}
+
 export default function Home() {
   const [notes, setNotes] = useState<Note[]>([]);
   const [error, setError] = useState("");
+  const [storageError, setStorageError] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    queueMicrotask(() => {
+      try {
+        const savedNotes = window.localStorage.getItem(STORAGE_KEY);
+        if (savedNotes) {
+          const parsed: unknown = JSON.parse(savedNotes);
+          if (!Array.isArray(parsed) || !parsed.every(isNote)) {
+            throw new Error("Saved notes have an invalid format.");
+          }
+          setNotes(parsed);
+        }
+      } catch (loadError) {
+        setStorageError(
+          loadError instanceof Error
+            ? `Saved notes could not be loaded: ${loadError.message}`
+            : "Saved notes could not be loaded.",
+        );
+      } finally {
+        setIsLoading(false);
+      }
+    });
+  }, []);
+
+  function saveNotes(updatedNotes: Note[]) {
+    setNotes(updatedNotes);
+    try {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedNotes));
+      setStorageError("");
+    } catch (saveError) {
+      setStorageError(
+        saveError instanceof Error
+          ? `Changes could not be saved: ${saveError.message}`
+          : "Changes could not be saved.",
+      );
+    }
+  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -28,7 +84,10 @@ export default function Home() {
         return;
       }
 
-      setNotes([{ ...result.note, id: window.crypto.randomUUID() }, ...notes]);
+      saveNotes([
+        { ...result.note, id: window.crypto.randomUUID() },
+        ...notes,
+      ]);
       setError("");
       form.reset();
     } finally {
@@ -95,14 +154,24 @@ export default function Home() {
 
         <button
           type="submit"
-          disabled={isSubmitting}
+          disabled={isSubmitting || isLoading}
           className="min-h-11 w-full rounded-lg bg-sky-400 px-5 py-2.5 font-semibold text-slate-950 shadow-lg shadow-sky-950/30 transition hover:bg-sky-300 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
         >
           {isSubmitting ? "Saving..." : "Save note"}
         </button>
       </form>
 
-      {notes.length > 0 ? (
+      {storageError && (
+        <p role="alert" className="text-sm text-rose-300">
+          {storageError}
+        </p>
+      )}
+
+      {isLoading ? (
+        <p className="text-slate-400" role="status">
+          Loading notes...
+        </p>
+      ) : notes.length > 0 ? (
         <section
           aria-labelledby="saved-notes-heading"
           className="flex flex-col gap-4"
