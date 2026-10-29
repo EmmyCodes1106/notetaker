@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, type FormEvent } from "react";
+import ReactMarkdown from "react-markdown";
 import { checkNote } from "./actions";
 
 type Note = {
@@ -130,6 +131,9 @@ export default function Home() {
             rows={5}
             className="w-full resize-y rounded-lg border border-slate-700 bg-slate-950/70 px-3 py-2.5 text-slate-100 placeholder:text-slate-500 focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-400/20"
           />
+          <p className="text-sm text-slate-400">
+            Markdown supported: headings, bold text, and lists.
+          </p>
         </div>
 
         <div className="flex flex-col gap-2">
@@ -192,9 +196,9 @@ export default function Home() {
                 <h3 className="min-w-0 break-words text-xl font-semibold tracking-tight text-slate-50">
                   {note.title}
                 </h3>
-                <p className="min-w-0 whitespace-pre-wrap break-words rounded-xl border border-slate-800/80 bg-slate-950/40 px-4 py-3 text-[15px] leading-7 text-slate-300">
-                  {note.body}
-                </p>
+                <div className="min-w-0 break-words rounded-xl border border-slate-800/80 bg-slate-950/40 px-4 py-3 text-[15px] leading-7 text-slate-300 [&_a]:text-sky-300 [&_a]:underline [&_blockquote]:my-3 [&_blockquote]:border-l-2 [&_blockquote]:border-sky-500 [&_blockquote]:pl-4 [&_h1]:my-3 [&_h1]:text-2xl [&_h1]:font-bold [&_h1]:text-slate-100 [&_h2]:my-3 [&_h2]:text-xl [&_h2]:font-bold [&_h2]:text-slate-100 [&_h3]:my-2 [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:text-slate-100 [&_ol]:my-2 [&_ol]:list-decimal [&_ol]:pl-6 [&_p]:my-2 [&_strong]:font-semibold [&_strong]:text-slate-100 [&_ul]:my-2 [&_ul]:list-disc [&_ul]:pl-6">
+                  <ReactMarkdown>{note.body}</ReactMarkdown>
+                </div>
                 {note.tags.length > 0 && (
                   <ul aria-label="Tags" className="flex flex-wrap gap-2">
                     {note.tags.map((tag) => (
