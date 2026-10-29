@@ -30,6 +30,7 @@ function isNote(value: unknown): value is Note {
 
 export default function Home() {
   const [notes, setNotes] = useState<Note[]>([]);
+  const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [storageError, setStorageError] = useState("");
   const [isLoading, setIsLoading] = useState(true);
@@ -95,6 +96,11 @@ export default function Home() {
       setIsSubmitting(false);
     }
   }
+
+  const availableTags = [...new Set(notes.flatMap((note) => note.tags))].sort();
+  const visibleNotes = notes.filter(
+    (note) => selectedTag === null || note.tags.includes(selectedTag),
+  );
 
   return (
     <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-8 px-4 py-8 text-slate-100 sm:gap-10 sm:px-6 sm:py-12">
@@ -187,8 +193,42 @@ export default function Home() {
             Saved notes
           </h2>
 
+          <div className="flex flex-wrap gap-2" aria-label="Filter by tag">
+            <button
+              type="button"
+              onClick={() => setSelectedTag(null)}
+              aria-pressed={selectedTag === null}
+              className={`min-h-10 rounded-full px-4 py-2 text-sm font-medium ${
+                selectedTag === null
+                  ? "bg-sky-400 text-slate-950"
+                  : "bg-slate-800 text-slate-300 hover:bg-slate-700"
+              }`}
+            >
+              All
+            </button>
+            {availableTags.map((tag) => (
+              <button
+                key={tag}
+                type="button"
+                onClick={() =>
+                  setSelectedTag((currentTag) =>
+                    currentTag === tag ? null : tag,
+                  )
+                }
+                aria-pressed={selectedTag === tag}
+                className={`min-h-10 rounded-full px-4 py-2 text-sm font-medium ${
+                  selectedTag === tag
+                    ? "bg-sky-400 text-slate-950"
+                    : "bg-slate-800 text-slate-300 hover:bg-slate-700"
+                }`}
+              >
+                {tag}
+              </button>
+            ))}
+          </div>
+
           <ul className="flex flex-col gap-4">
-            {notes.map((note) => (
+            {visibleNotes.map((note) => (
               <li
                 key={note.id}
                 className="min-w-0 space-y-4 rounded-2xl border border-slate-700/80 border-l-4 border-l-sky-400 bg-gradient-to-br from-slate-900 to-slate-900/70 p-4 shadow-lg shadow-black/20 sm:p-5"
@@ -202,11 +242,15 @@ export default function Home() {
                 {note.tags.length > 0 && (
                   <ul aria-label="Tags" className="flex flex-wrap gap-2">
                     {note.tags.map((tag) => (
-                      <li
-                        key={tag}
-                        className="rounded-full border border-sky-400/20 bg-sky-400/10 px-3 py-1 text-sm font-medium text-sky-200"
-                      >
-                        {tag}
+                      <li key={tag}>
+                        <button
+                          type="button"
+                          onClick={() => setSelectedTag(tag)}
+                          aria-pressed={selectedTag === tag}
+                          className="min-h-9 rounded-full border border-sky-400/20 bg-sky-400/10 px-3 py-1 text-sm font-medium text-sky-200 transition hover:border-sky-300/50 hover:bg-sky-400/20"
+                        >
+                          {tag}
+                        </button>
                       </li>
                     ))}
                   </ul>
